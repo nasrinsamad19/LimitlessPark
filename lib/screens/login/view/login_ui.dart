@@ -1,6 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:limitlesspark/screens/common/app_constants.dart';
+import 'package:limitlesspark/screens/login/view/sample.dart';
 import 'package:limitlesspark/screens/signup/signup_ui.dart';
+import 'package:limitlesspark/utils/authentication.dart';
 
 class loginUi extends StatefulWidget {
   const loginUi({Key? key}) : super(key: key);
@@ -17,6 +20,15 @@ class _loginUiState extends State<loginUi> {
   final _formKey = GlobalKey<FormState>();
   String email='';
   String password='';
+
+  @override
+  void initState() {
+    super.initState();
+    Authentication.initializeFirebase(context: context).whenComplete(() {
+      print("completed");
+      setState(() {});
+    });
+  }
 
   String? validatePassword(String value) {
     Pattern pattern =
@@ -35,6 +47,7 @@ class _loginUiState extends State<loginUi> {
       return null;
   }
 
+  
 
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -166,11 +179,20 @@ class _loginUiState extends State<loginUi> {
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                onTap: () {
-                                  // Navigator.push(
-                                  //   context,
-                                  //   MaterialPageRoute(builder: (context) => loginUi()),
-                                  // );
+                                onTap:  () async {
+                                  Authentication.initializeFirebase(context: context);
+                                  User? user =
+                                      await Authentication.signInWithGoogle(context: context);
+                                  if (user != null) {
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(
+                                        builder: (context) => UserInfoScreen(
+                                          user: user,
+                                        ),
+                                      ),
+                                    );
+                                  }
+
                                 },
                                 child: Image.asset(
                                   'assets/images/google_icon.png',

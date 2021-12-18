@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:limitlesspark/screens/common/app_constants.dart';
 import 'package:limitlesspark/screens/login/view/sample.dart';
 import 'package:limitlesspark/screens/signup/signup_ui.dart';
@@ -242,11 +243,13 @@ class _loginUiState extends State<loginUi> {
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                onTap: () {
-                                  // Navigator.push(
-                                  //   context,
-                                  //   MaterialPageRoute(builder: (context) => loginUi()),
-                                  // );
+                                onTap: () async {
+                                FacebookAuth.instance.login(permissions: ["public_profile", "email"]).then((value) {
+                                  FacebookAuth.instance.getUserData().then((
+                                      userData) {
+                                    print(userData);
+                                  });
+                                });
                                 },
                                 child:Image.asset(
                                   'assets/images/facebook_logo.png',

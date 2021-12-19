@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:limitlesspark/screens/common/app_constants.dart';
+import 'package:limitlesspark/screens/login/view/reset_password.dart';
 import 'package:limitlesspark/screens/login/view/sample.dart';
 import 'package:limitlesspark/screens/signup/signup_ui.dart';
 import 'package:limitlesspark/utils/authentication.dart';
@@ -116,10 +117,10 @@ class _loginUiState extends State<loginUi> {
                         fontSize: 11.0),
                   ),
                   onTap: () {
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(builder: (context) => SignUp()),
-                    // );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ResetPassword()),
+                    );
                   },
                 ),
               ),
@@ -205,33 +206,33 @@ class _loginUiState extends State<loginUi> {
                           SizedBox(
                             width: 5,
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: [
-                                ColorNames().lightBlue,
-                                Colors.blue
-                              ]),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: () {
-                                  // Navigator.push(
-                                  //   context,
-                                  //   MaterialPageRoute(builder: (context) => loginUi()),
-                                  // );
-                                },
-                                child: Image.asset(
-                                  'assets/images/apple_icon.png',
-                                  width: 30,
-                                  height: 30,
-                                ),),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
+                          // Container(
+                          //   decoration: BoxDecoration(
+                          //     gradient: LinearGradient(colors: [
+                          //       ColorNames().lightBlue,
+                          //       Colors.blue
+                          //     ]),
+                          //     borderRadius: BorderRadius.circular(10),
+                          //   ),
+                          //   child: Material(
+                          //     color: Colors.transparent,
+                          //     child: InkWell(
+                          //       onTap: () {
+                          //         // Navigator.push(
+                          //         //   context,
+                          //         //   MaterialPageRoute(builder: (context) => loginUi()),
+                          //         // );
+                          //       },
+                          //       child: Image.asset(
+                          //         'assets/images/apple_icon.png',
+                          //         width: 30,
+                          //         height: 30,
+                          //       ),),
+                          //   ),
+                          // ),
+                          // SizedBox(
+                          //   width: 5,
+                          // ),
                           Container(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(colors: [

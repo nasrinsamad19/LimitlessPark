@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:limitlesspark/screens/common/app_constants.dart';
 import 'package:limitlesspark/screens/login/view/login_ui.dart';
+import 'package:limitlesspark/screens/login/view/reset_password.dart';
 import 'package:limitlesspark/screens/signup/signup_ui.dart';
 
 class intro_ui extends StatefulWidget {
@@ -135,7 +136,7 @@ class _intro_uiState extends State<intro_ui> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SignUp()),
+                  MaterialPageRoute(builder: (context) => ResetPassword()),
                 );
               },
             )

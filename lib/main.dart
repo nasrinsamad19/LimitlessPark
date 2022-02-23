@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:limitlesspark/screens/activities/view/activities_ui.dart';
 import 'package:limitlesspark/screens/login/view/intro_ui.dart';
 
 void main() {

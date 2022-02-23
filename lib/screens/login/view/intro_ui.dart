@@ -39,14 +39,14 @@ class _intro_uiState extends State<intro_ui> {
               height: 100,
             ),
             Text(
-              'Welcome to the',
+              'Welcome to the'.toUpperCase(),
               style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 13.0),
             ),
             Text(
-              'Limitless Park',
+              'Limitless Park'.toUpperCase(),
               style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -77,7 +77,7 @@ class _intro_uiState extends State<intro_ui> {
                         );
                       },
                       child: Center(
-                        child: Text('Log In',
+                        child: Text('Log In'.toUpperCase(),
                             style: TextStyle(color: Colors.white)),
                       )),
                 ),
@@ -107,7 +107,7 @@ class _intro_uiState extends State<intro_ui> {
                         );
                       },
                       child: Center(
-                        child: Text('Sign Up',
+                        child: Text('Sign Up'.toUpperCase(),
                             style: TextStyle(color: Colors.white)),
                       )),
                 ),
@@ -124,7 +124,7 @@ class _intro_uiState extends State<intro_ui> {
                   ),
                   children: <TextSpan>[
                     new TextSpan(
-                      text: 'Forgot your password?',
+                      text: 'Forgot your password?'.toUpperCase(),
                       style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,

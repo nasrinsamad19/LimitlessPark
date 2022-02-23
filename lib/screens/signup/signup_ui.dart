@@ -1,10 +1,14 @@
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:limitlesspark/screens/car_registration/view/car_registration_ui.dart';
 import 'package:limitlesspark/screens/common/app_constants.dart';
 import 'package:limitlesspark/screens/login/view/login_ui.dart';
+import 'package:limitlesspark/screens/signup/api.dart';
 
 
 class SignUp extends StatefulWidget {
@@ -14,6 +18,7 @@ class SignUp extends StatefulWidget {
   _SignUpState createState() => _SignUpState();
 }
 
+
 class _SignUpState extends State<SignUp> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
@@ -22,6 +27,39 @@ class _SignUpState extends State<SignUp> {
   TextEditingController lnameController = TextEditingController();
   TextEditingController palteNoController = TextEditingController();
   TextEditingController phoneNoController = TextEditingController();
+
+  _register(){
+    var data={
+      'first_name': fnameController.text,
+      'last_name': lnameController.text,
+      'email' : emailController.text,
+      'password': passwordController.text
+    };
+
+     CallApi().postData(data,'accounts/register/')..then((value){
+       if(value == true){
+         Navigator.push(
+           context,
+           MaterialPageRoute(builder: (context) => CarRegistartionUi()),
+         );
+       }
+       else{
+         showDialog(
+             context: context,
+             builder: (BuildContext context) => _buildPopUp(context)
+
+         );
+       }
+     });
+    // print  ( res);
+    //  var body = json.encode(res);
+    // print(res);
+    //print(body.toString());
+    // if(body){
+    //   print('sucess');
+    // }
+
+  }
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
@@ -50,7 +88,6 @@ class _SignUpState extends State<SignUp> {
   }
 
   String? validateConfirmPassword(String value) {
-    print(passwordController.text);
     if (value.isEmpty) {
       return 'Please enter Password';
     }
@@ -67,7 +104,7 @@ class _SignUpState extends State<SignUp> {
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
       body: Container(
-        padding: EdgeInsets.only(top: 50),
+        padding: EdgeInsets.only(top: 30),
         decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage("assets/images/plain_background.jpg"),
@@ -76,33 +113,38 @@ class _SignUpState extends State<SignUp> {
         ),
        child: Stack(
          children: [
-           GestureDetector(
-             behavior: HitTestBehavior.translucent,
-             onTap: (){
-               Navigator.pop(context);
-             },
-             child: Container(
-              // color: Colors.white,
-              //  height: 50,
-              //  width: 50,
-               child: Row(
-                 children: [
-                   SizedBox(
-                     width: 10,
+           Align(
+             alignment: Alignment.topCenter,
+             child:  GestureDetector(
+                 behavior: HitTestBehavior.translucent,
+                 onTap: (){
+                   Navigator.pop(context);
+                 },
+                 child: Container(
+                   // color: Colors.white,
+                   //  height: 50,
+                   //  width: 50,
+                   child: Row(
+                     children: [
+                       SizedBox(
+                         width: 10,
+                       ),
+                       GestureDetector(
+                         behavior: HitTestBehavior.translucent,
+                         onTap: (){
+                           Navigator.pop(context);
+                         },
+                         child: Icon(Icons.arrow_back_ios,color: Colors.white,size: 15, ),
+                       ),
+                       SizedBox(
+                         width: 60,
+                       ),
+                       Text('register your account'.toUpperCase(), style: TextStyle(color: Colors.white,fontSize: 15.0),),
+                     ],
                    ),
-                   GestureDetector(
-                     behavior: HitTestBehavior.translucent,
-                     onTap: (){
-                       Navigator.pop(context);
-                     },
-                     child:                    Icon(Icons.arrow_back_ios,color: Colors.white,size: 15, ),
+                 )
 
-                   ),
-                   Text('Sign up', style: TextStyle(color: Colors.white,fontSize: 15.0),),
-                 ],
-               ),
-             )
-
+             ),
            ),
            SingleChildScrollView(
              physics: ClampingScrollPhysics(),
@@ -111,7 +153,7 @@ class _SignUpState extends State<SignUp> {
                crossAxisAlignment: CrossAxisAlignment.start,
                children: [
                  SizedBox(
-                   height: 80,
+                   height: 40,
                  ),
                  Align(
                    alignment: Alignment.center,
@@ -129,13 +171,32 @@ class _SignUpState extends State<SignUp> {
                    child: signUpForm(context),
                  ),
                  SizedBox(
-                   height: 50,
+                   height: 30,
+                 ),
+                 Align(
+                   alignment: Alignment.center,
+                   child: InkWell(
+                     child: Text('Forgot your password?'.toUpperCase(),
+                       style: TextStyle(
+                           color: Colors.white,
+                           fontSize: 11.0),
+                     ),
+                     onTap: () {
+                       // Navigator.push(
+                       //   context,
+                       //   MaterialPageRoute(builder: (context) => ResetPassword()),
+                       // );
+                     },
+                   ),
+                 ),
+                 SizedBox(
+                   height: 20,
                  ),
                  Align(
                    alignment: Alignment.center,
                    child:Container(
                      height: height/12,
-                     width: width/2,
+                     width: width/1.54,
                      padding: EdgeInsets.fromLTRB(50, 0, 50, 20),
                      child: Container(
                        decoration: BoxDecoration(
@@ -151,53 +212,163 @@ class _SignUpState extends State<SignUp> {
                              onTap: () {
                                if(_formKey.currentState!.validate()){
                                  _formKey.currentState!.save();
-                                 _scaffoldKey.currentState!.showSnackBar(
-                                     new SnackBar(
-                                       content: new Text(
-                                           "Success"),
-                                     ));
+                                 // _scaffoldKey.currentState!.showSnackBar(
+                                 //     new SnackBar(
+                                 //       content: new Text(
+                                 //           "Success"),
+                                 //     ));
                                }
+                               _register();
                              },
                              child: Center(
-                               child: Text('Sign Up',
+                               child: Text('next'.toUpperCase(),
                                    style: TextStyle(color: Colors.white)),
                              )),
                        ),
                      ),
                    ),
                  ),
-                 Align(
-                   alignment: Alignment.bottomCenter,
-                   child: GestureDetector(
-                     child: RichText(
-                       text: new TextSpan(
-                         style: new TextStyle(
-                           fontSize: 14.0,
-                           color: Colors.black,
+                 Padding(
+                     padding: EdgeInsets.only(left: 50),
+                     child: Column(
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                       children: [
+                         Text('Register with one of the following instead', style: TextStyle(color: Colors.white, fontSize: 13.0),),
+                         SizedBox(
+                           height: 5,
                          ),
-                         children: <TextSpan>[
-                           new TextSpan(
-                             text: 'Already have an account?',
-                             style: TextStyle(
-                                 color: Colors.white,
-                                 fontSize: 11.0),
-                           ),
-                           TextSpan(
-                             text: 'Log in',
-                             style: TextStyle(
-                                 color: Colors.white,
-                                 fontSize: 11.0,
-                                 fontWeight: FontWeight.bold),
-                           ),
-                         ],
+                         Row(
+                           crossAxisAlignment: CrossAxisAlignment.center,
+                           children: [
+                             Container(
+                               decoration: BoxDecoration(
+                                 border: Border.all(color: Colors.white),
+                                 borderRadius: BorderRadius.circular(5),
+                               ),
+                               child: Material(
+                                 color: Colors.transparent,
+                                 child: InkWell(
+                                   onTap:  () async {
+                                     // Authentication.initializeFirebase(context: context);
+                                     // User? user =
+                                     // await Authentication.signInWithGoogle(context: context);
+                                     // if (user != null) {
+                                     //   Navigator.of(context).pushReplacement(
+                                     //     MaterialPageRoute(
+                                     //       builder: (context) => UserInfoScreen(
+                                     //         user: user,
+                                     //       ),
+                                     //     ),
+                                     //   );
+                                     // }
+
+                                   },
+                                   child: Image.asset(
+                                     'assets/images/google_icon.png',
+                                     width: 30,
+                                     height: 30,
+                                   ),),
+                               ),
+                             ),
+                             SizedBox(
+                               width: 5,
+                             ),
+                             // Container(
+                             //   decoration: BoxDecoration(
+                             //     gradient: LinearGradient(colors: [
+                             //       ColorNames().lightBlue,
+                             //       Colors.blue
+                             //     ]),
+                             //     borderRadius: BorderRadius.circular(10),
+                             //   ),
+                             //   child: Material(
+                             //     color: Colors.transparent,
+                             //     child: InkWell(
+                             //       onTap: () {
+                             //         // Navigator.push(
+                             //         //   context,
+                             //         //   MaterialPageRoute(builder: (context) => loginUi()),
+                             //         // );
+                             //       },
+                             //       child: Image.asset(
+                             //         'assets/images/apple_icon.png',
+                             //         width: 30,
+                             //         height: 30,
+                             //       ),),
+                             //   ),
+                             // ),
+                             // SizedBox(
+                             //   width: 5,
+                             // ),
+                             Container(
+                               decoration: BoxDecoration(
+                                 border: Border.all(color: Colors.white),
+                                 borderRadius: BorderRadius.circular(5),
+                               ),
+                               child: Material(
+                                 color: Colors.transparent,
+                                 child: InkWell(
+                                   onTap: () async {
+                                     // FacebookAuth.instance.login(permissions: ["public_profile", "email"]).then((value) {
+                                     //   FacebookAuth.instance.getUserData().then((
+                                     //       userData) {
+                                     //     print(userData);
+                                     //   });
+                                     // });
+                                   },
+                                   child:Image.asset(
+                                     'assets/images/facebook_logo.png',
+                                     width: 30,
+                                     height: 30,
+                                   ),),
+                               ),
+                             ),
+                           ],
+                         )
+                       ],
+                     )
+                 ),
+                 SizedBox(
+                   height: 30,
+                 ),
+                 Align(
+                   alignment: Alignment.center,
+                   child: Text(
+                     'Already have an account?'.toUpperCase(),
+                     style: TextStyle(
+                         color: Colors.white,
+                         fontSize: 12),
+                   ),
+                 ),
+                 SizedBox(
+                   height: 5,
+                 ),
+                 Align(
+                   alignment: Alignment.center,
+                   child:Container(
+                     height: height/12,
+                     width: width/1.54,
+                     padding: EdgeInsets.fromLTRB(50, 0, 50, 20),
+                     child: Container(
+                       decoration: BoxDecoration(
+                         border: Border.all(color: ColorNames().blue),
+                         borderRadius: BorderRadius.circular(20),
+                       ),
+                       child: Material(
+                         color: Colors.transparent,
+                         child: InkWell(
+                             onTap: () {
+                               Navigator.push(
+                                 context,
+                                 MaterialPageRoute(builder: (context) => loginUi()),
+                               );
+                             },
+                             child: Center(
+                               child: Text('log in'.toUpperCase(),
+                                   style: TextStyle(color: Colors.white,fontSize: 16)),
+                             )),
                        ),
                      ),
-                     onTap: () {
-                       Navigator.push(
-                         context,
-                         MaterialPageRoute(builder: (context) => loginUi()),
-                       );
-                     },
                    ),
                  ),
                  SizedBox(
@@ -222,7 +393,7 @@ class _SignUpState extends State<SignUp> {
             Container(
               alignment: Alignment.topLeft,
               padding: EdgeInsets.fromLTRB(0, 0, 10, 0),
-              child: Text('First Name', style: TextStyle(
+              child: Text('Full Name', style: TextStyle(
                 color: Colors.white,
                 fontSize: 15,
               )),
@@ -235,13 +406,14 @@ class _SignUpState extends State<SignUp> {
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide( color: Colors.white),
                   ),
-                  hintText: 'Enter your First Name',
+                  hintText: 'Enter your first name here',
                   hintStyle: TextStyle(color: Colors.white, fontSize: 10.0),
                 ),
+                style: TextStyle(color: Colors.white, fontSize: 12.0),
                 controller: fnameController,
                 validator: (val){
                   if(val!.isEmpty){
-                    return 'Please enter First Name';
+                    return 'Please enter Name';
                   } else if(val.contains(RegExp(r'[0-9]'))){
                     return 'Please check your entry';
                   }
@@ -251,31 +423,30 @@ class _SignUpState extends State<SignUp> {
             ),
             Container(
               alignment: Alignment.topLeft,
-              padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
+              padding: EdgeInsets.fromLTRB(0, 0, 10, 0),
               child: Text('Last Name', style: TextStyle(
                 color: Colors.white,
                 fontSize: 15,
               )),
             ),
             Container(
-              height: 30,
+              height: 50,
               child: TextFormField(
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide( color: Colors.white),
                   ),
-                  hintText: 'Enter your Last Name',
+                  hintText: 'Enter your last name here',
                   hintStyle: TextStyle(color: Colors.white, fontSize: 10.0),
                 ),
+                style: TextStyle(color: Colors.white, fontSize: 12.0),
                 controller: lnameController,
                 validator: (val){
                   if(val!.isEmpty){
-                    return 'Please enter Last Name';
-                  } else{
-                    if(val.contains(RegExp(r'[0-9]'))){
-                      return 'Please check your entry';
-                    }
+                    return 'Please enter Name';
+                  } else if(val.contains(RegExp(r'[0-9]'))){
+                    return 'Please check your entry';
                   }
                 },
                 onSaved: (val)=> lname=val.toString(),
@@ -283,87 +454,23 @@ class _SignUpState extends State<SignUp> {
             ),
             Container(
               alignment: Alignment.topLeft,
-              padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
-              child: Text('Plate No', style: TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-              )),
-            ),
-            Container(
-              height: 30,
-              child: TextFormField(
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide( color: Colors.white),
-                  ),
-                  hintText: 'Enter your Plate Number',
-                  hintStyle: TextStyle(color: Colors.white, fontSize: 10.0),
-                ),
-                controller: palteNoController,
-                validator: (val){
-                  if(val!.isEmpty){
-                    return 'Please enter Plate Number';
-                  } else{
-                    if(val.contains(RegExp(r'[A-Z]'))){
-                      return 'Please check your entry';
-                    }
-                  }
-                },
-                onSaved: (val)=> plateNo=val.toString(),
-              ),
-            ),
-            Container(
-              alignment: Alignment.topLeft,
-              padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
-              child: Text('Phone No', style: TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-              )),
-            ),
-            Container(
-                height: 40,
-                padding: EdgeInsets.only(top: 5),
-                child:IntlPhoneField(
-                  countryCodeTextColor: Colors.white,
-                  keyboardType: TextInputType.number,
-                  dropDownIcon: Icon(Icons.arrow_drop_down,color: Colors.white,),
-                  style: TextStyle(color: Colors.white,),
-                  decoration: InputDecoration(
-                    hintText: 'Phone Number',
-                    helperStyle: TextStyle(
-                      color: Colors.white
-                    ),
-                    hintStyle: TextStyle(color: Colors.white, fontSize: 10.0),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide( color: Colors.white),
-                    ),
-                  ),
-                  initialCountryCode: 'AE',
-                  controller: phoneNoController,
-                  onChanged: (phone) {
-                    print(phone.countryISOCode);
-                  },
-                )
-            ),
-            Container(
-              alignment: Alignment.topLeft,
-              padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
+              padding: EdgeInsets.fromLTRB(0, 0, 10, 0),
               child: Text('Email', style: TextStyle(
                 color: Colors.white,
                 fontSize: 15,
               )),
             ),
             Container(
-              height: 30,
+              height: 50,
               child: TextFormField(
                 decoration: InputDecoration(
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide( color: Colors.white),
                   ),
-                  hintText: 'Enter your Email',
+                  hintText: ' Type your email here',
                   hintStyle: TextStyle(color: Colors.white, fontSize: 10.0),
                 ),
+                style: TextStyle(color: Colors.white, fontSize: 12.0),
                 controller: emailController,
                 validator: (val){
                   Pattern pattern =
@@ -389,15 +496,16 @@ class _SignUpState extends State<SignUp> {
               )),
             ),
             Container(
-              height: 30,
+              height: 50,
               child: TextFormField(
                 decoration: InputDecoration(
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide( color: Colors.white),
                   ),
-                  hintText: 'Enter your password ',
+                  hintText: 'Type your password here ',
                   hintStyle: TextStyle(color: Colors.white, fontSize: 10.0),
                 ),
+                style: TextStyle(color: Colors.white, fontSize: 12.0),
                 controller: passwordController,
                 validator:(val)=> validatePassword(val.toString()),
                 onSaved: (val)=> password=val.toString(),
@@ -412,15 +520,16 @@ class _SignUpState extends State<SignUp> {
               )),
             ),
             Container(
-              height: 30,
+              height: 50,
               child:TextFormField(
                 decoration: InputDecoration(
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide( color: Colors.white),
                   ),
-                  hintText: 'Enter your password ',
+                  hintText: 'Confirm your password here',
                   hintStyle: TextStyle(color: Colors.white, fontSize: 10.0),
                 ),
+                style: TextStyle(color: Colors.white, fontSize: 12.0),
                 controller: correctPasswordController,
                 validator:(val)=> validateConfirmPassword(val.toString()),
               ),
@@ -429,6 +538,30 @@ class _SignUpState extends State<SignUp> {
         ),
       ),
 
+    );
+  }
+
+  Widget _buildPopUp(BuildContext context){
+    return AlertDialog(
+      content: Text('Error', style: TextStyle(
+        fontSize: 15,
+        fontFamily: 'Montserrat',
+      ),) ,
+      actions: [
+        FlatButton(
+            color: Colors.black,
+            onPressed: (){
+              // Navigator.push(context, MaterialPageRoute(
+              //   builder: (context) => Intro_Screen()
+              // ));
+            },
+            child: Text('OK', style: TextStyle(
+                fontSize: 15,
+                fontFamily: 'Montserrat',
+                color: Colors.white,
+                fontWeight: FontWeight.bold
+            ),))
+      ],
     );
   }
 

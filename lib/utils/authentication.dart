@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:limitlesspark/screens/login/view/sample.dart';
+import 'package:limitlesspark/screens/signup/api.dart';
 
+var _accestoken;
+var _id_token;
 class Authentication {
   static SnackBar customSnackBar({required String content}) {
     return SnackBar(
@@ -22,7 +25,6 @@ class Authentication {
     FirebaseApp firebaseApp = await Firebase.initializeApp();
 
     User? user = FirebaseAuth.instance.currentUser;
-
     if (user != null) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
@@ -60,16 +62,25 @@ class Authentication {
       if (googleSignInAccount != null) {
         final GoogleSignInAuthentication googleSignInAuthentication =
         await googleSignInAccount.authentication;
+        print('rrrrrrrr');
 
+        print(googleSignInAuthentication.accessToken);
+        _accestoken =googleSignInAuthentication.accessToken;
+        _id_token = googleSignInAuthentication.idToken;
         final AuthCredential credential = GoogleAuthProvider.credential(
           accessToken: googleSignInAuthentication.accessToken,
           idToken: googleSignInAuthentication.idToken,
         );
 
+        print('rrrrrrrr');
+        print(credential.token);
+
         try {
           final UserCredential userCredential =
           await auth.signInWithCredential(credential);
+          print('rrrrrrrr');
 
+          print(userCredential.user);
           user = userCredential.user;
         } on FirebaseAuthException catch (e) {
           if (e.code == 'account-exists-with-different-credential') {
@@ -116,4 +127,20 @@ class Authentication {
       );
     }
   }
+  static Future<void> signgoogle({required BuildContext context}) async{
+    var data={
+      'access_token': _accestoken,
+      'code': '',
+      'id_token' : _id_token,
+    };
+     CallApi().postSocialGoogleLogin(data,'accounts/social-login/google/').then((value){
+      if(value == true){
+        return true;
+      }
+      else{
+        return false;
+      }
+    });
+  }
+
 }

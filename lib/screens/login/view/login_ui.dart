@@ -1,11 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:limitlesspark/screens/car_registration/view/car_registration_ui.dart';
 import 'package:limitlesspark/screens/common/app_constants.dart';
+import 'package:limitlesspark/screens/home/view/homw.dart';
+import 'package:limitlesspark/screens/login/view/model.dart';
 import 'package:limitlesspark/screens/login/view/reset_password.dart';
 import 'package:limitlesspark/screens/login/view/sample.dart';
+import 'package:limitlesspark/screens/signup/api.dart';
 import 'package:limitlesspark/screens/signup/signup_ui.dart';
 import 'package:limitlesspark/utils/authentication.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class loginUi extends StatefulWidget {
   const loginUi({Key? key}) : super(key: key);
@@ -13,6 +19,12 @@ class loginUi extends StatefulWidget {
   @override
   _loginUiState createState() => _loginUiState();
 }
+GoogleSignIn _googleSignIn = GoogleSignIn(
+  scopes: <String>[
+    'email',
+    'https://www.googleapis.com/auth/contacts.readonly',
+  ],
+);
 
 class _loginUiState extends State<loginUi> {
   @override
@@ -22,10 +34,17 @@ class _loginUiState extends State<loginUi> {
   final _formKey = GlobalKey<FormState>();
   String email='';
   String password='';
+  var id;
+  var acessToken;
+  var idToken;
+
+
+  late LoginRequestModel loginRequestModel;
 
   @override
   void initState() {
     super.initState();
+    loginRequestModel = new LoginRequestModel(email: '',password: '');
     Authentication.initializeFirebase(context: context).whenComplete(() {
       print("completed");
       setState(() {});
@@ -49,7 +68,7 @@ class _loginUiState extends State<loginUi> {
       return null;
   }
 
-  
+  bool _isloading = false;
 
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -83,7 +102,8 @@ class _loginUiState extends State<loginUi> {
                         width: 10,
                       ),
                       Icon(Icons.arrow_back_ios,color: Colors.white,size: 15, ),
-                      Text('Log in', style: TextStyle(color: Colors.white,fontSize: 15.0),),
+                      SizedBox(width: 80,),
+                      Text('Log into your account'.toUpperCase(), style: TextStyle(color: Colors.white,fontSize: 15.0),),
                     ],
                   ),
                 )
@@ -111,7 +131,7 @@ class _loginUiState extends State<loginUi> {
               Align(
                 alignment: Alignment.center,
                 child: InkWell(
-                  child: Text('Forgot your password?',
+                  child: Text('Forgot your password?'.toUpperCase(),
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 11.0),
@@ -125,13 +145,13 @@ class _loginUiState extends State<loginUi> {
                 ),
               ),
               SizedBox(
-                height: 20,
+                height: 10,
               ),
               Align(
                 alignment: Alignment.center,
                 child:Container(
                   height: height/12,
-                  width: width/2,
+                  width: width/1.6,
                   padding: EdgeInsets.fromLTRB(50, 0, 50, 20),
                   child: Container(
                     decoration: BoxDecoration(
@@ -145,13 +165,30 @@ class _loginUiState extends State<loginUi> {
                       color: Colors.transparent,
                       child: InkWell(
                           onTap: () {
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(builder: (context) => loginUi()),
-                            // );
-                          },
+                            if(validateAndSave()){
+
+                              CallApi callApi = new CallApi();
+                              callApi.login(loginRequestModel).then((value) async {
+                                SharedPreferences prefs = await SharedPreferences.getInstance();
+                                var cars = prefs.getStringList('cars');
+                                if(cars!.isNotEmpty){
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => Home()),
+                                  );
+                                }
+                                else{
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => CarRegistartionUi()),
+                                  );
+                                }
+                              });
+                              print(loginRequestModel.toJson());
+                            }
+                           },
                           child: Center(
-                            child: Text('Log In',
+                            child: Text('Log In'.toUpperCase(),
                                 style: TextStyle(color: Colors.white)),
                           )),
                     ),
@@ -172,24 +209,22 @@ class _loginUiState extends State<loginUi> {
                         children: [
                           Container(
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: [
-                                ColorNames().lightBlue,
-                                Colors.blue
-                              ]),
-                              borderRadius: BorderRadius.circular(10),
+                             border: Border.all(color: Colors.white),
+                              borderRadius: BorderRadius.circular(5),
                             ),
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
                                 onTap:  () async {
+                                  var _token;
                                   Authentication.initializeFirebase(context: context);
                                   User? user =
                                       await Authentication.signInWithGoogle(context: context);
-                                  if (user != null) {
+                                  var value = Authentication.signgoogle(context: context);
+                                  if (value != null) {
                                     Navigator.of(context).pushReplacement(
                                       MaterialPageRoute(
-                                        builder: (context) => UserInfoScreen(
-                                          user: user,
+                                        builder: (context) => CarRegistartionUi(
                                         ),
                                       ),
                                     );
@@ -235,20 +270,54 @@ class _loginUiState extends State<loginUi> {
                           // ),
                           Container(
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: [
-                                ColorNames().lightBlue,
-                                Colors.blue
-                              ]),
-                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.white),
+                              borderRadius: BorderRadius.circular(5),
                             ),
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
                                 onTap: () async {
-                                FacebookAuth.instance.login(permissions: ["public_profile", "email"]).then((value) {
-                                  FacebookAuth.instance.getUserData().then((
+                                FacebookAuth.instance.login(permissions: ["public_profile", "email"]).then((value) async {
+                                  // Create a credential from the access token
+                                  final OAuthCredential credential = FacebookAuthProvider.credential(value.accessToken!.token);
+                                  acessToken= credential.accessToken;
+                                  var cr= FirebaseAuth.instance.signInWithCredential(credential).then((value){
+                                    id = credential.idToken;
+                                    idToken = value.user!.getIdToken();
+                                    idToken.then((value){
+                                      id =value;
+                                      signfacebook();
+                                    });
+                                  });
+                                 //  print(cr.then((value){
+                                 //    idToken = value!.user!.getIdToken();
+                                 //     idToken.then((value) {
+                                 //       id= value;
+                                 //       print(id);
+                                 //       print(acessToken);
+                                 //       signfacebook();
+                                 //     });
+                                 // }));
+                                 //aacessToken= value.accessToken!.token;
+                                 //               print('ppppppp');
+                                 //  print(value.accessToken!.token);
+                                 //  print(value.accessToken!.applicationId);
+                                 //  print(credential.accessToken);
+                                 //  print('ppppppp');
+                                 // print(credential.idToken);
+                                 //   FacebookAuth.instance.accessToken;
+                                    FacebookAuth.instance.getUserData().then((
                                       userData) {
                                     print(userData);
+                                    if (userData != null) {
+                                      Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(
+                                          builder: (context) => CarRegistartionUi(
+                                          ),
+                                        ),
+                                      );
+                                    }
+
                                   });
                                 });
                                 },
@@ -267,36 +336,42 @@ class _loginUiState extends State<loginUi> {
               SizedBox(height: 50,),
               Align(
                 alignment: Alignment.bottomCenter,
-                child: GestureDetector(
-                  child: RichText(
-                    text: new TextSpan(
-                      style: new TextStyle(
-                        fontSize: 14.0,
-                        color: Colors.black,
-                      ),
-                      children: <TextSpan>[
-                        new TextSpan(
-                          text: 'Don\'t  have an account?',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11.0),
-                        ),
-                        TextSpan(
-                          text: 'Sign up',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11.0,
-                          fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                child: Text(
+                  'Don\'t  have an account?'.toUpperCase(),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11.0),
+                ),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Align(
+                alignment: Alignment.center,
+                child:Container(
+                  height: height/12,
+                  width: width/1.6,
+                  padding: EdgeInsets.fromLTRB(50, 0, 50, 20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: ColorNames().blue),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                          onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => SignUp()),
+                              );
+                          },
+                          child: Center(
+                            child: Text('sign up'.toUpperCase(),
+                                style: TextStyle(color: Colors.white,fontSize: 16)),
+                          )),
                     ),
                   ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SignUp()),
-                    );
-                  },
                 ),
               ),
             ],
@@ -327,9 +402,10 @@ class _loginUiState extends State<loginUi> {
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide( color: Colors.white),
                 ),
-                hintText: 'Enter your Email',
+                hintText: 'Type your email here',
                 hintStyle: TextStyle(color: Colors.white, fontSize: 10.0),
               ),
+              style: TextStyle(color: Colors.white, fontSize: 12.0),
               controller: emailController,
               validator: (val){
                 Pattern pattern =
@@ -343,7 +419,7 @@ class _loginUiState extends State<loginUi> {
                   }
                 }
               },
-              onSaved: (val)=> email=val.toString(),
+              onSaved: (input)=> loginRequestModel.email= input.toString(),
             ),
           ),
           Container(
@@ -361,12 +437,13 @@ class _loginUiState extends State<loginUi> {
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide( color: Colors.white),
                 ),
-                hintText: 'Enter your password ',
+                hintText: 'Type your password here',
                 hintStyle: TextStyle(color: Colors.white, fontSize: 10.0),
               ),
+              style: TextStyle(color: Colors.white, fontSize: 12.0),
               controller: passwordController,
               validator:(val)=> validatePassword(val.toString()),
-              onSaved: (val)=> password=val.toString(),
+              onSaved: (input)=> loginRequestModel.password= input.toString(),
             ),
           )
         ],
@@ -374,4 +451,30 @@ class _loginUiState extends State<loginUi> {
 
     );
   }
+
+  bool validateAndSave(){
+    final form = _formKey.currentState;
+    if(form!.validate()){
+      form.save();
+      return true;
+    }
+    return false;
+  }
+
+   signfacebook(){
+    var data={
+      'access_token': acessToken.toString(),
+      'code': '',
+      'id_token' : id,
+    };
+    CallApi().postSocialFacebbokLogin(data,'accounts/social-login/facebook/').then((value){
+      if(value == true){
+        return true;
+      }
+      else{
+        return false;
+      }
+    });
+  }
+
 }

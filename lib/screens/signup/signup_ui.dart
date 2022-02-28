@@ -36,7 +36,7 @@ class _SignUpState extends State<SignUp> {
       'password': passwordController.text
     };
 
-     CallApi().postData(data,'accounts/register/')..then((value){
+     CallApi().postData(data,'accounts/register/').then((value){
        if(value == true){
          Navigator.push(
            context,

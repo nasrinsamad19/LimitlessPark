@@ -305,4 +305,27 @@ class CallApi {
     // }
   }
 
+  Future<http.Response> fetchNotifictions() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    final response =
+    await http.get(Uri.parse("https://api.catapush.com/1/messages"), headers: {
+      'Content-type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': 'Token ${token}',
+    });
+    print(response.body);
+    return jsonDecode(response.body);
+    // if (response.statusCode == 200) {
+    //   // If the server did return a 200 OK response,
+    //   // then parse the JSON.
+    //   return Album.fromJson(jsonDecode(response.body));
+    // } else {
+    //   // If the server did not return a 200 OK response,
+    //   // then throw an exception.
+    //   throw Exception('Failed to load album');
+    // }
+  }
+
+
 }

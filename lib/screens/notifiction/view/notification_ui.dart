@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:limitlesspark/screens/common/app_constants.dart';
+import 'package:limitlesspark/screens/signup/api.dart';
 
 class Notification_ui extends StatefulWidget {
   const Notification_ui({Key? key}) : super(key: key);
@@ -9,6 +10,13 @@ class Notification_ui extends StatefulWidget {
 }
 
 class _Notification_uiState extends State<Notification_ui> {
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    CallApi().fetchNotifictions();
+  }
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;

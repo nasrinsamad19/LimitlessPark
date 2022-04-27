@@ -1,7 +1,16 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:limitlesspark/screens/common/app_constants.dart';
 import 'package:limitlesspark/screens/home/view/homw.dart';
+import 'package:limitlesspark/screens/login/view/intro_ui.dart';
+import 'package:limitlesspark/screens/login/view/reset_password.dart';
+import 'package:limitlesspark/screens/notifiction/view/notification_ui.dart';
 import 'package:limitlesspark/screens/signup/api.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:limitlesspark/main.dart';
 
 class CarRegistartionUi extends StatefulWidget {
   const CarRegistartionUi({Key? key}) : super(key: key);
@@ -14,35 +23,79 @@ class _CarRegistartionUiState extends State<CarRegistartionUi> {
 
   TextEditingController car1Controller = TextEditingController();
   TextEditingController car2Controller = TextEditingController();
+  var platform;
 
-  _registerCar(){
+
+  newToken(){
+    FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
+      final prefs = await SharedPreferences.getInstance();
+      var currentToken = prefs.getString('token');
+      if (currentToken != token) {
+        print('token refresh: ' + token);
+        // add code here to do something with the updated token
+        await prefs.setString('token', token);
+      }
+    });
+  }
+
+
+  _registerCar() async {
+    print('here');
+    if (Platform.isAndroid) {
+      platform = "android";
+    } else if (Platform.isIOS) {
+      platform = "ios";
+    }
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('car1', car1Controller.text);
+    await prefs.setString('car2', car2Controller.text);
+
+    var rtoken = prefs.getString('token');
+    var car1= prefs.getString('car1');
+    var car2= prefs.getString('car2');
+    var name =prefs.getString('name');
+    var email=prefs.getString('email');
+    var password= prefs.getString('password');
     var data={
-      'license_plate': car1Controller.text,
+      "full_name": name,
+      "email": email,
+      "password": password,
+      "cars":car2!.isNotEmpty?[car1, car2]:[car1],
+      "registration_token": rtoken,
+      "device_type":platform
     };
+    // var data={
+    //   "registrationToken": token,
+    //   "plateText": car1,
+    //   "deviceType": platform,
+    // };
+    print('here');
 
-    CallApi().postCarRegistration(data,'cars/create/').then((value){
-      if(value == true){
+    CallApi().register(data,'users/signup/').then((value) async {
+      if(value == 201 ){
+
+      otpVerify();
+
+
+      }
+      else if(value== 200){
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('carno',car1.toString());
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => Home()),
+          MaterialPageRoute(builder: (context) => Home(0)),
         );
-      }
-      else{
+      } else{
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        var content = prefs.getString('error');
         showDialog(
-            context: context,
-            builder: (BuildContext context) => _buildPopUp(context)
-
+          context: context,
+          builder: (BuildContext context) => _buildPopupDialog(context,content),
         );
       }
     });
-    // print  ( res);
-    //  var body = json.encode(res);
-    // print(res);
-    //print(body.toString());
-    // if(body){
-    //   print('sucess');
-    // }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -123,7 +176,10 @@ class _CarRegistartionUiState extends State<CarRegistartionUi> {
 
                             ),
                             child:TextFormField(
+                              maxLength: 7,
                               decoration: InputDecoration(
+                                counterText: '',
+                                counterStyle: TextStyle(fontSize: 0),
                                 enabledBorder: UnderlineInputBorder(
                                   borderSide: BorderSide( color: ColorNames().grey),
                                 ),
@@ -133,7 +189,7 @@ class _CarRegistartionUiState extends State<CarRegistartionUi> {
                               controller: car1Controller,
                               validator: (val){
                                 if(val!.isEmpty){
-                                  return 'Please enter Name';
+                                  return 'Please enter Plate Number';
                                 }
                               },
                               //onSaved: (val)=> password=val.toString(),
@@ -153,12 +209,20 @@ class _CarRegistartionUiState extends State<CarRegistartionUi> {
 
                             ),
                             child:TextFormField(
+                              maxLength: 7,
                               decoration: InputDecoration(
+                                counterText: '',
+                                counterStyle: TextStyle(fontSize: 0),
                                 fillColor: ColorNames().blue,
                                 hintText: 'license plate no.',
                                 hintStyle: TextStyle(color: ColorNames().darkgrey, fontSize: 14.0),
                               ),
                               controller: car2Controller,
+                              validator: (val){
+                                if(val!.isEmpty){
+                                  return 'Please enter Plate Number';
+                                }
+                              },
                               //validator:(val)=> validatePassword(val.toString()),
                               //onSaved: (val)=> password=val.toString(),
                             ),
@@ -166,11 +230,6 @@ class _CarRegistartionUiState extends State<CarRegistartionUi> {
                         ],
                       ) ,
                     )
-
-
-
-
-
                   ],
 
                 ),
@@ -191,8 +250,14 @@ class _CarRegistartionUiState extends State<CarRegistartionUi> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                          onTap: () {
-                            _registerCar();
+                          onTap: () async {
+                            if(car1Controller.text.isNotEmpty){
+                              MyAppState().getToken();
+                              _registerCar();
+                            }
+
+                           // setcar();
+
                           },
                           child: Center(
                             child: Text('submit'.toUpperCase(),
@@ -209,28 +274,118 @@ class _CarRegistartionUiState extends State<CarRegistartionUi> {
     );
   }
 
-  Widget _buildPopUp(BuildContext context){
-    return AlertDialog(
-      content: Text('Error', style: TextStyle(
-        fontSize: 15,
-        fontFamily: 'Montserrat',
-      ),) ,
-      actions: [
-        FlatButton(
-            color: Colors.black,
-            onPressed: (){
-              // Navigator.push(context, MaterialPageRoute(
-              //   builder: (context) => Intro_Screen()
-              // ));
-            },
-            child: Text('OK', style: TextStyle(
-                fontSize: 15,
-                fontFamily: 'Montserrat',
-                color: Colors.white,
-                fontWeight: FontWeight.bold
-            ),))
+  Widget _buildPopupDialog(BuildContext context,value) {
+    return new AlertDialog(
+      title: const Text('Error'),
+      content: new Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text('$value'),
+        ],
+      ),
+      actions: <Widget>[
+        new FlatButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          textColor: Theme.of(context).primaryColor,
+          child: const Text('Close'),
+        ),
       ],
     );
   }
 
+  //
+  // setcar() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   await prefs.setString('car1', car1Controller.text);
+  //   await prefs.setString('car2', car2Controller.text);
+  //   print(  prefs.getString('car1'));
+  //   if(car2Controller.text.isNotEmpty){
+  //     sub();
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(builder: (context) => Notification_ui()),
+  //     );
+  //   }
+  //   else{
+  //     showDialog(
+  //         context: context,
+  //         builder: (BuildContext context) => _buildPopUp(context)
+  //
+  //     );
+  //   }
+  //
+  // }
+
+  sub() async{
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('token');
+    var subscribed = prefs.getStringList('subscribed');
+   var car1= prefs.getString('car1');
+    var car2= prefs.getString('car2');
+
+
+    List topics = [
+      car1,
+      car2,
+    ];
+    if(car1!.isNotEmpty){
+      await FirebaseMessaging.instance
+          .subscribeToTopic(topics[0]);
+
+      await FirebaseFirestore.instance
+          .collection('topics')
+          .doc(token)
+          .set({topics[0]: 'subscribe'},
+          SetOptions(merge: true));
+      setState(() {
+        subscribed?.add(topics[0]);
+      });
+    }
+    if(car2!.isNotEmpty){
+      await FirebaseMessaging.instance
+          .subscribeToTopic(topics[1]);
+      await FirebaseFirestore.instance
+          .collection('topics')
+          .doc(token)
+          .set({topics[1]: 'subscribe'},
+          SetOptions(merge: true));
+      setState(() {
+        subscribed?.add(topics[1]);
+      });
+    }
+
+
+  }
+
+  otpVerify() async {
+    final prefs = await SharedPreferences.getInstance();
+    var email=prefs.getString('email');
+    print(email);
+   var data ={
+     "email": email,
+    "reason": "account_activation"
+  };
+
+    CallApi().getOtp(data, 'users/get-otp/').then((value) async {
+     if (value== 200){
+       Navigator.push(
+         context,
+         MaterialPageRoute(builder: (context) => ResetPassword(email: 'null',)),
+       );
+     }else{
+       SharedPreferences prefs = await SharedPreferences.getInstance();
+       var content = prefs.getString('getOtpError');
+       showDialog(
+         context: context,
+         builder: (BuildContext context) => _buildPopupDialog(context,content),
+       );
+     }
+    }
+      );
+
+}
 }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:limitlesspark/screens/common/app_constants.dart';
 import 'package:limitlesspark/screens/login/view/login_ui.dart';
 import 'package:limitlesspark/screens/login/view/reset_password.dart';
+import 'package:limitlesspark/screens/signup/api.dart';
 import 'package:limitlesspark/screens/signup/signup_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class intro_ui extends StatefulWidget {
   const intro_ui({Key? key}) : super(key: key);
@@ -56,15 +58,13 @@ class _intro_uiState extends State<intro_ui> {
               height: 50,
             ),
             Container(
-              height: height/12,
-              width: width/2,
+              height: height / 12,
+              width: width / 2,
               padding: EdgeInsets.fromLTRB(50, 0, 50, 20),
               child: Container(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [
-                    ColorNames().lightBlue,
-                    Colors.blue
-                  ]),
+                  gradient: LinearGradient(
+                      colors: [ColorNames().lightBlue, Colors.blue]),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Material(
@@ -83,19 +83,16 @@ class _intro_uiState extends State<intro_ui> {
                 ),
               ),
             ),
-
             Container(
-              height: height/12,
-              width: width/2,
+              height: height / 12,
+              width: width / 2,
               padding: EdgeInsets.fromLTRB(50, 0, 50, 20),
               child: Container(
                 decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [
-                      Colors.blue,
-                      ColorNames().lightBlue
-                    ]),
-                    boxShadow: [],
-                    borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                      colors: [Colors.blue, ColorNames().lightBlue]),
+                  boxShadow: [],
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Material(
                   color: Colors.transparent,
@@ -113,36 +110,51 @@ class _intro_uiState extends State<intro_ui> {
                 ),
               ),
             ),
-            GestureDetector(
-              child: RichText(
-                text: new TextSpan(
-                  // Note: Styles for TextSpans must be explicitly defined.
-                  // Child text spans will inherit styles from parent
-                  style: new TextStyle(
-                    fontSize: 14.0,
-                    color: Colors.black,
-                  ),
-                  children: <TextSpan>[
-                    new TextSpan(
-                      text: 'Forgot your password?'.toUpperCase(),
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13.0),
-                    ),
-                  ],
-                ),
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ResetPassword()),
-                );
-              },
-            )
+            // GestureDetector(
+            //   child: RichText(
+            //     text: new TextSpan(
+            //       // Note: Styles for TextSpans must be explicitly defined.
+            //       // Child text spans will inherit styles from parent
+            //       style: new TextStyle(
+            //         fontSize: 14.0,
+            //         color: Colors.black,
+            //       ),
+            //       children: <TextSpan>[
+            //         new TextSpan(
+            //           text: 'Forgot your password?'.toUpperCase(),
+            //           style: TextStyle(
+            //               color: Colors.white,
+            //               fontWeight: FontWeight.bold,
+            //               fontSize: 13.0),
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            //   onTap: () {
+            //     otpVerify();
+            //   },
+            // )
           ],
         ),
       ),
     ));
   }
+// otpVerify() async {
+//   final prefs = await SharedPreferences.getInstance();
+//   var email=prefs.getString('email');
+//   var data ={
+//     "email": email,
+//     "reason": "password_reset"
+//   };
+//
+//   CallApi().getOtp(data, 'users/get-otp/').then((value) async {
+//     if (value== 200){
+//       Navigator.push(
+//         context,
+//         MaterialPageRoute(builder: (context) => ResetPassword()),
+//       );
+//     }}
+//   );
+//
+// }
 }

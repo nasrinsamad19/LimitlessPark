@@ -2,10 +2,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:limitlesspark/screens/common/app_constants.dart';
+import 'package:limitlesspark/screens/home/view/homw.dart';
+import 'package:limitlesspark/screens/login/view/emailEnter.dart';
+import 'package:limitlesspark/screens/login/view/passwordChnage.dart';
+import 'package:limitlesspark/screens/signup/api.dart';
 import 'package:limitlesspark/utils/authentication.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ResetPassword extends StatefulWidget {
-  const ResetPassword({Key? key}) : super(key: key);
+  final String email;
+
+  const ResetPassword({Key? key, required this.email}) : super(key: key);
 
   @override
   _ResetPasswordState createState() => _ResetPasswordState();
@@ -15,11 +22,12 @@ class _ResetPasswordState extends State<ResetPassword> {
   @override
   void initState() {
     super.initState();
-    Firebase.initializeApp().whenComplete(() {
-      print("completed");
-      setState(() {});
-    });
+    // Firebase.initializeApp().whenComplete(() {
+    //   print("completed");
+    //   setState(() {});
+    // });
   }
+
   @override
   TextEditingController emailController = TextEditingController();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -27,142 +35,389 @@ class _ResetPasswordState extends State<ResetPassword> {
   String email = '';
   final auth = FirebaseAuth.instance;
 
+  // 4 text editing controllers that associate with the 4 input fields
+  final TextEditingController _fieldOne = TextEditingController();
+  final TextEditingController _fieldTwo = TextEditingController();
+  final TextEditingController _fieldThree = TextEditingController();
+  final TextEditingController _fieldFour = TextEditingController();
+  final TextEditingController _fieldFive = TextEditingController();
+  final TextEditingController _fieldSix = TextEditingController();
+
+  // This is the entered code
+  // It will be displayed in a Text widget
+  String? _otp;
+
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(
-              height: 50,
-            ),
-            Align(
-                alignment: Alignment.topLeft,
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Icon(
-                        Icons.arrow_back_ios,
-                        color: ColorNames().darkBlue,
-                        size: 15,
-                      ),
-                      Text(
-                        'Forgot password',
-                        style: TextStyle(
-                            color: ColorNames().darkBlue, fontSize: 12.0),
-                      ),
-                    ],
-                  ),
-                )),
-            SizedBox(
-              height: height / 3,
-            ),
-            Align(
+      appBar: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: ColorNames().darkBlue,
+          toolbarHeight: 70,
+          title: Container(
               alignment: Alignment.center,
-              child: Image.asset(
-                'assets/images/lock.png',
-                width: 150,
-                height: 100,
+              color: ColorNames().darkBlue,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/images/limitless_logo.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                  Text(
+                    'Limitless Parking'.toUpperCase(),
+                    style: TextStyle(color: Colors.white, fontSize: 19.0),
+                  ),
+                ],
+              ))),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(40),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Align(
+              child: Text(
+                'Thanks for registring in the limiltess park app'.toUpperCase(),
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 19.0,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
-            Text(
-              'Forgot your',
-              style: TextStyle(color: ColorNames().darkBlue, fontSize: 13.0),
+            SizedBox(
+              height: 100,
             ),
             Text(
-              'Password?',
+              'Please verify your account',
               style: TextStyle(
                   color: ColorNames().darkBlue,
-                  fontWeight: FontWeight.bold,
+                  //fontWeight: FontWeight.bold,
                   fontSize: 25.0),
+              textAlign: TextAlign.center,
             ),
             SizedBox(
-              height: 50,
+              height: 10,
             ),
-            emilform(context),
+            Text(
+              'Enter the code we sent to your register email address',
+              style: TextStyle(
+                  color: Colors.black,
+                  //fontWeight: FontWeight.bold,
+                  fontSize: 19.0),
+              textAlign: TextAlign.center,
+            ),
             SizedBox(
               height: 20,
             ),
-            Container(
-              height: height / 10,
-              width: width / 1.5,
-              padding: EdgeInsets.fromLTRB(50, 0, 50, 20),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      colors: [Colors.blue, ColorNames().lightBlue]),
-                  boxShadow: [],
-                  borderRadius: BorderRadius.circular(20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                OtpInput(_fieldOne, true),
+                OtpInput(_fieldTwo, false),
+                OtpInput(_fieldThree, false),
+                OtpInput(_fieldFour, false),
+                OtpInput(_fieldFive, false),
+                OtpInput(_fieldSix, false)
+              ],
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+            Align(
+              alignment: Alignment.center,
+              child: InkWell(
+                child: Text(
+                  'Resent OTP?',
+                  style: TextStyle(color: Colors.black, fontSize: 11.0),
                 ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                      onTap: () {
-                        Authentication.initializeFirebase(context: context);
-                        if (_formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          auth.sendPasswordResetEmail(email: email);
-                          Navigator.pop(context);
-                        }
-                      },
-                      child: Center(
-                        child: Text('Submit',
-                            style: TextStyle(color: Colors.white)),
-                      )),
-                ),
+                onTap: () {
+                  if (widget.email.contains('null')) {
+                    print('null');
+                    otpVerify();
+                  } else if (widget.email.contains('loginEmail')) {
+                    print('loginEmail');
+                    otpVerifyLogin();
+                  } else {
+                    print('llll');
+                    otpVerifyReset();
+                  }
+                },
               ),
             ),
+            // Display the entered OTP code
+            // Text(
+            //   _otp ?? 'Please enter OTP',
+            //   style: const TextStyle(fontSize: 30),
+            // )
+            // Container(
+            //   height: height / 10,
+            //   width: width / 1.5,
+            //   padding: EdgeInsets.fromLTRB(50, 0, 50, 20),
+            //   child: Container(
+            //     decoration: BoxDecoration(
+            //       gradient: LinearGradient(
+            //           colors: [Colors.blue, ColorNames().lightBlue]),
+            //       boxShadow: [],
+            //       borderRadius: BorderRadius.circular(20),
+            //     ),
+            //     child: Material(
+            //       color: Colors.transparent,
+            //       child: InkWell(
+            //           onTap: () {
+            //             Authentication.initializeFirebase(context: context);
+            //             if (_formKey.currentState!.validate()) {
+            //               _formKey.currentState!.save();
+            //               auth.sendPasswordResetEmail(email: email);
+            //               Navigator.pop(context);
+            //             }
+            //           },
+            //           child: Center(
+            //             child: Text('Submit',
+            //                 style: TextStyle(color: Colors.white)),
+            //           )),
+            //     ),
+            //   ),
+            // ),
           ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        child: Container(
+          height: height / 10,
+          width: width / 2,
+          padding: EdgeInsets.fromLTRB(50, 0, 50, 20),
+          child: Container(
+            decoration: BoxDecoration(
+              // gradient: LinearGradient(
+              //     colors: [Colors.blue, ColorNames().lightBlue]),
+              color: ColorNames().darkBlue,
+              boxShadow: [],
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      _otp = _fieldOne.text +
+                          _fieldTwo.text +
+                          _fieldThree.text +
+                          _fieldFour.text +
+                          _fieldFive.text +
+                          _fieldSix.text;
+                    });
+                    if (_otp!.isNotEmpty) {
+                      if (widget.email.contains('null')) {
+                        emailVerify();
+                      } else if (widget.email.contains('loginEmail')) {
+                        loginActivation();
+                      } else {
+                        checkPasswordOtp();
+                      }
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) =>
+                            _buildPopupDialog(context, 'Enter Otp'),
+                      );
+                    }
+                  },
+                  child: Center(
+                    child:
+                        Text('Verify', style: TextStyle(color: Colors.white)),
+                  )),
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget emilform(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
+  otpVerify() async {
+    final prefs = await SharedPreferences.getInstance();
+    var email = prefs.getString('email');
+    var data = {"email": email, "reason": "account_activation"};
 
-    return Form(
-      key: _formKey,
-      child: Container(
-        height: 50,
-        width: width / 2.5,
-        child: TextFormField(
-          keyboardType: TextInputType.text,
-          decoration: InputDecoration(
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: ColorNames().darkBlue),
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-            border: OutlineInputBorder(
-              borderSide: BorderSide(color: ColorNames().darkBlue),
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-            hintText: 'Enter your Email',
-            hintStyle: TextStyle(color: ColorNames().darkBlue, fontSize: 10.0),
-          ),
-          controller: emailController,
-          validator: (val) {
-            Pattern pattern =
-                r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+";
-            RegExp regex = RegExp(pattern.toString());
-            if (val!.isEmpty) {
-              return 'Please enter email';
-            } else {
-              if (!regex.hasMatch(val)) {
-                return 'Invalid Email';
-              }
-            }
+    CallApi().getOtp(data, 'users/get-otp/').then((value) async {
+      if (value == 200) {
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => ResetPassword(email: 'null',)),
+        // );
+      }
+    });
+  }
+
+  otpVerifyLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    var email = prefs.getString('loginEmail');
+    var data = {"email": email, "reason": "account_activation"};
+
+    CallApi().getOtp(data, 'users/get-otp/').then((value) async {
+      if (value == 200) {
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => ResetPassword(email: 'ema',)),
+        // );
+      }
+    });
+  }
+
+  otpVerifyReset() async {
+    final prefs = await SharedPreferences.getInstance();
+    var email = prefs.getString('passwordEmail');
+    var data = {"email": email, "reason": "password_reset"};
+
+    CallApi().getOtp(data, 'users/get-otp/').then((value) async {
+      if (value == 200) {
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => ResetPassword(email: 'null',)),
+        // );
+      }
+    });
+  }
+
+  emailVerify() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('otp', _otp.toString());
+    var email = prefs.getString('email');
+    print(email);
+    print(_otp);
+    var data = {"email": email, "otp_token": _otp};
+
+    CallApi()
+        .emailVerification(data, 'users/email-verify/')
+        .then((value) async {
+      if (value == 200) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Home(0)),
+        );
+      } else {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        var content = prefs.getString('emailVerror');
+        showDialog(
+          context: context,
+          builder: (BuildContext context) =>
+              _buildPopupDialog(context, content),
+        );
+      }
+    });
+  }
+
+  loginActivation() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('otp', _otp.toString());
+    var email = prefs.getString('loginEmail');
+    print(email);
+    print(_otp);
+    var data = {"email": email, "otp_token": _otp};
+
+    CallApi()
+        .emailVerification(data, 'users/email-verify/')
+        .then((value) async {
+      if (value == 200) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Home(0)),
+        );
+      } else {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        var content = prefs.getString('emailVerror');
+        showDialog(
+          context: context,
+          builder: (BuildContext context) =>
+              _buildPopupDialog(context, content),
+        );
+      }
+    });
+  }
+
+  checkPasswordOtp() async {
+    print('reset');
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('otp', _otp.toString());
+    print(_otp);
+    var data = {"email": widget.email, "otp_token": _otp};
+
+    CallApi()
+        .resetVerification(data, 'users/check-password-otp/')
+        .then((value) async {
+      if (value == 200) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ChangePassword()),
+        );
+      } else {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        var content = prefs.getString('resetVerificationerror');
+        showDialog(
+          context: context,
+          builder: (BuildContext context) =>
+              _buildPopupDialog(context, content),
+        );
+      }
+    });
+  }
+
+  Widget _buildPopupDialog(BuildContext context, value) {
+    return new AlertDialog(
+      title: const Text('Error'),
+      content: new Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text('$value'),
+        ],
+      ),
+      actions: <Widget>[
+        new FlatButton(
+          onPressed: () {
+            Navigator.of(context).pop();
           },
-          onSaved: (val) => email = val.toString(),
+          textColor: Theme.of(context).primaryColor,
+          child: const Text('Close'),
         ),
+      ],
+    );
+  }
+}
+
+// Create an input widget that takes only one digit
+class OtpInput extends StatelessWidget {
+  final TextEditingController controller;
+  final bool autoFocus;
+
+  const OtpInput(this.controller, this.autoFocus, {Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 40,
+      width: 40,
+      child: TextField(
+        autofocus: autoFocus,
+        textAlign: TextAlign.center,
+        keyboardType: TextInputType.number,
+        controller: controller,
+        maxLength: 1,
+        cursorColor: Theme.of(context).primaryColor,
+        decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            counterText: '',
+            hintStyle: TextStyle(color: Colors.black, fontSize: 20.0)),
+        onChanged: (value) {
+          if (value.length == 1) {
+            FocusScope.of(context).nextFocus();
+          }
+        },
       ),
     );
   }

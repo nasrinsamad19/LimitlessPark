@@ -8,6 +8,7 @@ import 'package:limitlesspark/screens/signup/api.dart';
 
 var _accestoken;
 var _id_token;
+
 class Authentication {
   static SnackBar customSnackBar({required String content}) {
     return SnackBar(
@@ -47,7 +48,7 @@ class Authentication {
 
       try {
         final UserCredential userCredential =
-        await auth.signInWithPopup(authProvider);
+            await auth.signInWithPopup(authProvider);
 
         user = userCredential.user;
       } catch (e) {
@@ -57,44 +58,35 @@ class Authentication {
       final GoogleSignIn googleSignIn = GoogleSignIn();
 
       final GoogleSignInAccount? googleSignInAccount =
-      await googleSignIn.signIn();
+          await googleSignIn.signIn();
 
       if (googleSignInAccount != null) {
         final GoogleSignInAuthentication googleSignInAuthentication =
-        await googleSignInAccount.authentication;
-        print('rrrrrrrr');
-
-        print(googleSignInAuthentication.accessToken);
-        _accestoken =googleSignInAuthentication.accessToken;
+            await googleSignInAccount.authentication;
+        _accestoken = googleSignInAuthentication.accessToken;
         _id_token = googleSignInAuthentication.idToken;
         final AuthCredential credential = GoogleAuthProvider.credential(
           accessToken: googleSignInAuthentication.accessToken,
           idToken: googleSignInAuthentication.idToken,
         );
-
-        print('rrrrrrrr');
         print(credential.token);
-
         try {
           final UserCredential userCredential =
-          await auth.signInWithCredential(credential);
-          print('rrrrrrrr');
-
-          print(userCredential.user);
+              await auth.signInWithCredential(credential);
           user = userCredential.user;
         } on FirebaseAuthException catch (e) {
           if (e.code == 'account-exists-with-different-credential') {
             ScaffoldMessenger.of(context).showSnackBar(
               Authentication.customSnackBar(
                 content:
-                'The account already exists with a different credential',
+                    'The account already exists with a different credential',
               ),
             );
           } else if (e.code == 'invalid-credential') {
             ScaffoldMessenger.of(context).showSnackBar(
               Authentication.customSnackBar(
                 content:
-                'Error occurred while accessing credentials. Try again.',
+                    'Error occurred while accessing credentials. Try again.',
               ),
             );
           }
@@ -127,20 +119,21 @@ class Authentication {
       );
     }
   }
-  static Future<void> signgoogle({required BuildContext context}) async{
-    var data={
+
+  static Future<void> signgoogle({required BuildContext context}) async {
+    var data = {
       'access_token': _accestoken,
       'code': '',
-      'id_token' : _id_token,
+      'id_token': _id_token,
     };
-     CallApi().postSocialGoogleLogin(data,'accounts/social-login/google/').then((value){
-      if(value == true){
+    CallApi()
+        .postSocialGoogleLogin(data, 'accounts/social-login/google/')
+        .then((value) {
+      if (value == true) {
         return true;
-      }
-      else{
+      } else {
         return false;
       }
     });
   }
-
 }

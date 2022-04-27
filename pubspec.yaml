@@ -45,6 +45,8 @@ dependencies:
   shared_preferences: ^2.0.13
   firebase_messaging: ^11.2.8
   flutter_local_notifications: ^9.3.2
+  cloud_firestore: ^3.1.10
+  flutter_datetime_picker: ^1.5.1
 
 dev_dependencies:
   flutter_test:

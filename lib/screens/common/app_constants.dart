@@ -11,8 +11,4 @@ class ColorNames {
   Color darkgrey = const Color(0xff9D9D9D);
   Color blueombre = const Color(0xff6A9ED4);
   Color ash = const Color(0xffEAEAEA);
-
-
-
-
 }
